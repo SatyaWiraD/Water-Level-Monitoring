@@ -12,37 +12,6 @@ Proyek ini dibangun dengan bahasa **C++** menggunakan arsitektur **Client-Server
 
 ---
 
-## Arsitektur Sistem
-+-------------+ TCP Socket +-------------+
-| Sensor 1 | ---------------------> | |
-| (Client) | | |
-+-------------+ | |
-| |
-+-------------+ TCP Socket | Server |
-| Sensor 2 | ---------------------> | |
-| (Client) | | |
-+-------------+ | |
-| |
-Multithreaded & Buffered |
-+-------------+
-
-## Struktur Folder
-project/
-├── include/ # Header files
-│ └── data_point.hpp
-├── src/ # Source code
-│ ├── server.cpp
-│ ├── client.cpp
-│ └── utils.cpp
-├── data/ # Output data
-│ ├── backup.dat # File biner
-│ └── critical.json # Data level kritis
-├── README.md # Dokumentasi proyek
-├── Makefile # Build system
-└── requirements.txt # Dependency eksternal
-
----
-
 ## Fitur
 
 ### 1. Client–Server Communication
@@ -62,13 +31,3 @@ project/
 ### 4. Pemrosesan Paralel & Sinkronisasi
 - Server multithread untuk menangani banyak sensor sekaligus.
 - `std::mutex` digunakan untuk menjaga konsistensi buffer data.
-
----
-
-##  Dependencies
-
-- C++17 atau lebih baru
-- POSIX socket (Linux/macOS) atau Winsock (Windows)
-- [`nlohmann/json`](https://github.com/nlohmann/json) untuk ekspor data ke JSON
-
----
