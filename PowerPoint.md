@@ -39,8 +39,6 @@ Namun, metode manual ini memiliki beberapa kekurangan serius:
 
 Berikut adalah **deskripsi solusi** untuk setiap masalah yang telah didefinisikan, **berdasarkan penjelasan proyek** yang diberikan:
 
----
-
 ## **1. Client–Server**
 
 ### **Solusi:**
@@ -50,8 +48,6 @@ Berikut adalah **deskripsi solusi** untuk setiap masalah yang telah didefinisika
 * **Server** mendengarkan koneksi pada port tertentu (default: `8888`), menerima data dari client, mencatat ID client, timestamp, dan nilai level air.
 * Server dapat menerima **banyak koneksi secara paralel** menggunakan **multi-threading** (std::thread), membuat sistem mampu menangani berbagai sensor aktif secara simultan.
 
----
-
 ## **2. Pencarian & Pengurutan Data**
 
 ### **Solusi:**
@@ -60,8 +56,6 @@ Berikut adalah **deskripsi solusi** untuk setiap masalah yang telah didefinisika
 * Data level air yang **melebihi atau di bawah ambang batas normal** dianggap **kritis** dan **diekspor secara periodik ke file `critical.json`** dalam format yang terstruktur.
 * File JSON berisi informasi yang dapat dengan mudah **dicari dan diurutkan berdasarkan timestamp** menggunakan alat bantu seperti Python atau viewer JSON.
 * Format JSON mendukung penyimpanan data dalam format key-value dan array of objects, sehingga mudah digunakan untuk pencarian dan pengurutan momen kritis.
-
----
 
 ## **3. Persistensi Data**
 
@@ -77,8 +71,6 @@ Berikut adalah **deskripsi solusi** untuk setiap masalah yang telah didefinisika
 * Data yang dianggap **kritis** (di luar batas aman) akan diekspor ke file `critical.json`.
 * File ini berisi **timestamp, ID sensor, dan nilai level air** untuk dokumentasi dan audit kondisi berbahaya.
 * File ini terstruktur dan ringan, ideal untuk pemantauan jarak jauh atau pelaporan otomatis.
-
----
 
 ## **4. Pemrosesan Paralel & Sinkronisasi**
 
