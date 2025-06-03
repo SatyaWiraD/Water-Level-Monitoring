@@ -1,0 +1,23 @@
+{
+  "configurations": [
+    {
+      "name": "Win32-UCRT64", // Atau nama lain yang deskriptif
+      "includePath": [
+        "${workspaceFolder}/**",
+        "${workspaceFolder}/include", // Untuk nlohmann
+        "${workspaceFolder}/include/nlohmann"
+        // Biarkan VS Code mencoba mendeteksi path sistem dari compilerPath baru
+      ],
+      "defines": [
+        "_DEBUG",
+        "UNICODE",
+        "_UNICODE".
+      ],
+      "compilerPath": "C:/msys64/ucrt64/bin/g++.exe", // <--- SESUAIKAN PATH COMPILER INI
+      "cStandard": "c11",
+      "cppStandard": "c++11", // Atau c++14, c++17 jika Anda ingin standar lebih baru
+      "intelliSenseMode": "windows-gcc-x64" // Untuk compiler 64-bit
+    }
+  ],
+  "version": 4
+}
