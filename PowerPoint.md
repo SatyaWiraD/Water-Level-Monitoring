@@ -2,16 +2,16 @@
 
 ## Inti pembahasan di dalamnya : 
 
-###Deskripsi Solusi untuk setiap masalah yang didefinisikan
+### Deskripsi Solusi untuk setiap masalah yang didefinisikan
 
 
-###Arsitektur dari system
+### Arsitektur dari system
 
   
-###Use Case dari system yang bertujuan mengimplementasikan solusi yang diajukan
+### Use Case dari system yang bertujuan mengimplementasikan solusi yang diajukan
 
 
-###Detail Program, terutama untuk menjawab kriteria-kriteria dalam deskripsi masalah proyek
+### Detail Program, terutama untuk menjawab kriteria-kriteria dalam deskripsi masalah proyek
 
 ---
 
