@@ -351,4 +351,4 @@ std::mutex bufferMutex;
 - Semua akses read/write dataBuffer dikunci dengan lock_guard
 
 # PowerPoint berisi rangkuman dari apa yang ada disini dan dapat diakses pada link : 
-https://www.canva.com/design/DAGpTnUDGOQ/ErgDzdF2SGE5gtSgnPqJdw/edit?utm_content=DAGpTnUDGOQ&utm_campaign=designshare&utm_medium=link2&utm_source=sharebutton
+https://www.canva.com/design/DAGpTiErw1w/01iJRxzQnAsq00c3qrc6JQ/edit?utm_content=DAGpTiErw1w&utm_campaign=designshare&utm_medium=link2&utm_source=sharebutton
