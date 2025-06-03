@@ -83,6 +83,71 @@ Berikut adalah **deskripsi solusi** untuk setiap masalah yang telah didefinisika
 
 ---
 
+Tentu! Berikut penjelasan **arsitektur sistem Water Level Monitoring** secara lebih lengkap dan terstruktur:
+
+---
+
+## **Arsitektur Sistem Water Level Monitoring (Client-Server)**
+
+### **Overview Sistem**
+
+Sistem ini dirancang untuk memonitor level air pada tangki eksperimen secara otomatis menggunakan pendekatan client-server. Sensor level air bertindak sebagai client yang mengirim data secara berkala ke server pusat yang bertugas mengelola, menyimpan, dan menganalisis data tersebut.
+
+### **Komponen Utama**
+
+#### a. **Client (Sensor Air)**
+* Berfungsi sebagai pengirim data.
+* Setiap client memiliki **ID unik** untuk mengidentifikasi data yang dikirim.
+* Data level air dihasilkan atau diukur secara simulasi dan dikirim ke server.
+* Menggunakan protokol TCP/IP untuk komunikasi jaringan.
+* Data dikirim secara **periodik** ke server melalui koneksi socket pada port yang sudah ditentukan (default: 8888).
+* Bisa ada banyak client yang berjalan secara simultan, misalnya beberapa sensor pada tangki yang berbeda.
+
+#### b. **Server Monitoring**
+* Menjadi pusat penerima dan pengelola data.
+* Menunggu dan menerima koneksi dari berbagai client secara bersamaan dengan memanfaatkan **multi-threading** (`std::thread`).
+* Setiap client yang terhubung diproses di thread terpisah agar tidak saling mengganggu dan dapat berjalan paralel.
+* Data yang diterima berupa ID client, nilai level air, dan timestamp pengiriman.
+* Data disimpan sementara di buffer bersama yang diakses oleh banyak thread.
+* Untuk menjaga integritas data dan mencegah race condition, akses ke buffer menggunakan **mutex** (`std::mutex`).
+
+### **Pengolahan dan Penyimpanan Data**
+
+#### a. **Persistensi Data**
+* Data semua client disimpan secara berkala ke dalam file **backup.dat** dengan format biner.
+* Tujuan backup adalah memastikan data tidak hilang jika server tiba-tiba mati atau terjadi kegagalan sistem.
+* Data yang disimpan mencakup seluruh data level air yang diterima, lengkap dengan timestamp dan ID sensor.
+
+#### b. **Pengelolaan Data Kritis**
+* Data yang melebihi batas aman (ambang atas atau ambang bawah level air) dianggap **kritis**.
+* Data kritis ini secara periodik diekspor ke file **critical.json** dalam format JSON yang terstruktur.
+* Format JSON memudahkan pencarian, pengurutan, dan analisis data menggunakan tool eksternal seperti Python atau aplikasi pembaca JSON.
+* File ini berguna untuk pemantauan kondisi bahaya dan audit kondisi sistem.
+
+### **Komunikasi dan Protokol**
+
+* Sistem menggunakan protokol **TCP/IP** untuk komunikasi client-server, menjamin keandalan pengiriman data.
+* Port default yang digunakan adalah **8888**, tetapi dapat dikonfigurasi sesuai kebutuhan.
+* Server mampu menangani banyak koneksi secara paralel dengan model multi-threaded, sehingga skalabilitasnya baik.
+* Client secara otomatis mengirim data level air secara berkala dan akan berhenti ketika data sudah terkirim semua.
+
+### **Keamanan dan Sinkronisasi**
+
+* Karena server menggunakan multi-threading untuk menangani banyak client, data yang diakses bersama perlu dilindungi agar tidak terjadi benturan (race condition).
+* Mekanisme sinkronisasi menggunakan **mutex** menjamin setiap thread yang mengakses buffer data bersama dilakukan secara aman dan terkontrol.
+
+### **Alur Sistem**
+
+1. **Client (sensor)** membaca data level air secara simulasi.
+2. Client mengirimkan data ke server melalui koneksi TCP.
+3. Server menerima data dan menyimpannya di buffer bersama.
+4. Server menilai apakah data termasuk kritis berdasarkan ambang batas.
+5. Data kritis diekspor ke file JSON (`critical.json`) secara periodik.
+6. Semua data secara berkala di-backup ke file biner (`backup.dat`) untuk memastikan persistensi.
+7. Sistem siap menerima data dari banyak client secara simultan dan terus berjalan.
+
+---
+
 Terdapat 4 kriteria utama yang terdapat pada  definisi masalah berupa :
 
 #### Arsitektur Client - Server
