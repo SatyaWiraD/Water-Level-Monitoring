@@ -13,6 +13,8 @@
 
 ###- Detail Program, terutama untuk menjawab kriteria-kriteria dalam deskripsi masalah proyek
 
+---
+
 ## **Latar Belakang Masalah**
 
 Dalam berbagai **percobaan di laboratorium elektro-mekanik Universitas Indonesia**, digunakan **tangki air** sebagai bagian dari sistem eksperimen. Pada eksperimen-eksperimen ini, **volume dan level air** di dalam tangki sangat penting karena secara langsung memengaruhi **validitas hasil percobaan**.
@@ -35,6 +37,59 @@ Namun, metode manual ini memiliki beberapa kekurangan serius:
    * Sehingga **pemantauan manual tidak efisien**, **memakan waktu**, dan sangat bergantung pada **ketelitian teknisi**,
    * **Risiko kelalaian meningkat**, terutama jika teknisi harus memantau banyak tangki sekaligus.
 
+Berikut adalah **deskripsi solusi** untuk setiap masalah yang telah didefinisikan, **berdasarkan penjelasan proyek** yang diberikan:
+
+---
+
+## **1. Client–Server**
+
+### **Solusi:**
+
+* Sistem dirancang dengan **arsitektur client-server**, di mana setiap sensor air bertindak sebagai **client** dan sebuah aplikasi pusat sebagai **server monitoring**.
+* **Client** membaca data level air dari sensor (dalam simulasi dikodekan) dan mengirimkannya secara berkala ke server melalui koneksi jaringan.
+* **Server** mendengarkan koneksi pada port tertentu (default: `8888`), menerima data dari client, mencatat ID client, timestamp, dan nilai level air.
+* Server dapat menerima **banyak koneksi secara paralel** menggunakan **multi-threading** (std::thread), membuat sistem mampu menangani berbagai sensor aktif secara simultan.
+
+---
+
+## **2. Pencarian & Pengurutan Data**
+
+### **Solusi:**
+
+* Data yang dikirim client ditampung dalam struktur buffer bersama di server.
+* Data level air yang **melebihi atau di bawah ambang batas normal** dianggap **kritis** dan **diekspor secara periodik ke file `critical.json`** dalam format yang terstruktur.
+* File JSON berisi informasi yang dapat dengan mudah **dicari dan diurutkan berdasarkan timestamp** menggunakan alat bantu seperti Python atau viewer JSON.
+* Format JSON mendukung penyimpanan data dalam format key-value dan array of objects, sehingga mudah digunakan untuk pencarian dan pengurutan momen kritis.
+
+---
+
+## **3. Persistensi Data**
+
+### **Solusi:**
+
+#### a. **Backup Berkala (Biner)**
+
+* Semua data dari client disimpan secara **berkala** ke file `backup.dat` dalam format **biner**.
+* Ini memastikan **persistensi data** jika server dimatikan atau gagal; data tetap dapat dikembalikan.
+
+#### b. **Ekspor Kritis (JSON)**
+
+* Data yang dianggap **kritis** (di luar batas aman) akan diekspor ke file `critical.json`.
+* File ini berisi **timestamp, ID sensor, dan nilai level air** untuk dokumentasi dan audit kondisi berbahaya.
+* File ini terstruktur dan ringan, ideal untuk pemantauan jarak jauh atau pelaporan otomatis.
+
+---
+
+## **4. Pemrosesan Paralel & Sinkronisasi**
+
+### **Solusi:**
+
+* Server menggunakan **multi-threading** untuk menangani koneksi dari banyak client sekaligus.
+* Setiap koneksi client diproses dalam **thread terpisah**, meningkatkan efisiensi dan kemampuan skala.
+* Untuk menghindari kondisi balapan (race condition), server menggunakan **mutex (std::mutex)** untuk mengamankan akses ke buffer data bersama.
+* Ini memastikan integritas data meskipun banyak thread aktif secara bersamaan.
+
+---
 
 Terdapat 4 kriteria utama yang terdapat pada  definisi masalah berupa :
 
