@@ -85,7 +85,7 @@ Berikut adalah **deskripsi solusi** untuk setiap masalah yang telah didefinisika
 
 Terdapat 4 kriteria utama yang terdapat pada  definisi masalah berupa :
 
-####Arsitektur Client - Server
+#### Arsitektur Client - Server
   
 Arsitektur umum sistem berbasis TCP. Client mewakilkan sensor yang mensimulasikan pengiriman data water level. Sementara server menerima data dari client dan menyimpan secara temporer dengan pencadangan berkala, data kritis dicatat dalam format JSON.
 
@@ -102,8 +102,7 @@ Terdapat penyimpanan lokal dari server ke dua jenis file :
 - critical.json: File JSON hanya berisi data yang melewati ambang kritis (< 20 atau > 80).
 
 
-####Searching & Sorting Data
-
+#### Searching & Sorting Data
 
 Kriteria yang diperlukan berdasarkan definisi masalah : 
 
@@ -132,6 +131,40 @@ Detail Implementasinya pada program berupa kode berikut :
 - Data kemudian ditambahkan ke array JSON.
 - Data tidak secara langsung di sort berdasarkan timestamp, tapi urutan data buffer sudah berdasarkan waktu yang diterma
 
-####Persistensi Data
+#### Persistensi Data
 
-####Paralel Processing & Sinkronisasi
+Kriteria yang diperlukan berdasarkan definisi masalah : 
+
+- Backup data level ke file biner
+- Export timestamp ke JSON untuk dokumentasi
+
+Detail implementasi ada pada cuplikan kode : 
+
+```cpp
+void backupToBinary(const std::string& filename) {
+    std::lock_guard<std::mutex> lock(bufferMutex);
+    ...
+    for (const auto& dp : dataBuffer) {
+        out.write(reinterpret_cast<const char*>(&dp.timestamp), sizeof(dp.timestamp));
+        out.write(reinterpret_cast<const char*>(&dp.level), sizeof(dp.level));
+        ...
+    }
+}
+
+```
+
+Serta secara periodik dipanggil dengan : 
+
+```cpp
+void periodicBackup() {
+    while (true) {
+        std::this_thread::sleep_for(std::chrono::seconds(10));
+        backupToBinary(...);
+        exportCriticalToJson(...);
+    }
+}
+```
+
+- File biner digunakan (std::ios::binary) untuk keperluan backup yang didalamnya ditulis timestamp, level, dan panjang serta isi dari clientId.
+
+#### Paralel Processing & Sinkronisasi
