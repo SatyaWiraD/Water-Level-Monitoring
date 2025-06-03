@@ -86,6 +86,21 @@ Berikut adalah **deskripsi solusi** untuk setiap masalah yang telah didefinisika
 Terdapat 4 kriteria utama yang terdapat pada  definisi masalah berupa :
 
 - Arsitektur Client - Server
+  
+Arsitektur umum sistem berbasis TCP. Client mewakilkan sensor yang mensimulasikan pengiriman data water level. Sementara server menerima data dari client dan menyimpan secara temporer dengan pencadangan berkala, data kritis dicatat dalam format JSON.
+
+Mekanisme Komunikasi menggunakan protokol TCP socket karena reliable.
+
+Alur komunikasinya berupa :
+
+Client : Membuka koneksi ke server (127.0.0.1:8888) - > Mengirimkan ID sensor (CLIENT_ID) sebagai identifikasi -> Mengirim 10 data level air acak (0.00 - 100.00) setiap 2 detik
+
+Server : Menerima ID sensor, mencatat sumber data -> Menerima data level air dan mencatatnya dalam buffer (std::vector<DataPoint>) -> Data disimpan dalam in-memory buffer sampai backup periodik dijalankan.
+
+Terdapat penyimpanan lokal dari server ke dua jenis file : 
+- backup.dat: Binary file untuk semua data (timestamp, level, clientId).
+- critical.json: File JSON hanya berisi data yang melewati ambang kritis (< 20 atau > 80).
+
 
 - Searching & Sorting Data
 
