@@ -89,7 +89,7 @@ Simulasi disk penuh atau file terkunci untuk memverifikasi apakah sistem gagal s
 # Konfigurasi Penting dalam Kode
 
 - src/client.cpp:
-`const std::string CLIENT_ID` = "SensorA001";: Ubah ini untuk setiap ID sensor yang unik.
+`const std::string CLIENT_ID = "SensorA001";`: Ubah ini untuk setiap ID sensor yang unik.
 `serverAddr.sin_port = htons(8888);`: Pastikan port ini cocok dengan port server.
 - src/server.cpp:
 `const std::string DATA_DIRECTORY_PATH = "...";`: WAJIB DIUBAH menjadi path absolut ke direktori data/ proyek Anda.
