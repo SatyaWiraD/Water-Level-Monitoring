@@ -42,8 +42,7 @@ Pastikan Anda berada di direktori root proyek (`Water Level Monitoring/`) saat m
 Setiap client sebaiknya memiliki ID unik. Untuk contoh ini, ID di-hardcode dalam client.cpp. Jika Anda ingin beberapa client dengan ID berbeda, Anda perlu memodifikasi CLIENT_ID di client.cpp dan mengompilasi ulang untuk setiap client, atau memodifikasi client untuk menerima ID sebagai argumen.
 
 - Ganti `C:/msys64/ucrt64/bin/g++.exe` dengan path compiler Anda jika berbeda
-`C:/msys64/ucrt64/bin/g++.exe -std=c++11 src/client.cpp -o bin/client_sensorA.exe -lws2_32 -pthread`
-- Jika Anda ingin client lain, ubah `CLIENT_ID` di `src/client.cpp`, lalu kompilasi lagi: `C:/msys64/ucrt64/bin/g++.exe -std=c++11 src/client.cpp -o bin/client_sensorB.exe -lws2_32 -pthread`
+- Ketik C:/msys64/ucrt64/bin/g++.exe -std=c++11 src/client.cpp -o bin/client_sensorA.exe -lws2_32 -pthread` pada terminal untuk compile program client. Jika Anda ingin client lain, ubah `CLIENT_ID` di `src/client.cpp`, lalu kompilasi lagi: `C:/msys64/ucrt64/bin/g++.exe -std=c++11 src/client.cpp -o bin/client_sensorB.exe -lws2_32 -pthread`
 
 **3. Kompilasi Server:**
 Pastikan Anda telah mengatur DATA_DIRECTORY_PATH dengan benar di dalam file src/server.cpp agar menunjuk ke direktori data/ proyek Anda secara absolut.
