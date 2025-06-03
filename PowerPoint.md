@@ -85,7 +85,7 @@ Berikut adalah **deskripsi solusi** untuk setiap masalah yang telah didefinisika
 
 Terdapat 4 kriteria utama yang terdapat pada  definisi masalah berupa :
 
-- Arsitektur Client - Server
+####Arsitektur Client - Server
   
 Arsitektur umum sistem berbasis TCP. Client mewakilkan sensor yang mensimulasikan pengiriman data water level. Sementara server menerima data dari client dan menyimpan secara temporer dengan pencadangan berkala, data kritis dicatat dalam format JSON.
 
@@ -102,7 +102,7 @@ Terdapat penyimpanan lokal dari server ke dua jenis file :
 - critical.json: File JSON hanya berisi data yang melewati ambang kritis (< 20 atau > 80).
 
 
-- Searching & Sorting Data
+####Searching & Sorting Data
 
 
 Kriteria yang diperlukan berdasarkan definisi masalah : 
@@ -132,6 +132,6 @@ Detail Implementasinya pada program berupa kode berikut :
 - Data kemudian ditambahkan ke array JSON.
 - Data tidak secara langsung di sort berdasarkan timestamp, tapi urutan data buffer sudah berdasarkan waktu yang diterma
 
-- Persistensi Data
+####Persistensi Data
 
-- Paralel Processing & Sinkronisasi
+####Paralel Processing & Sinkronisasi
