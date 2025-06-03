@@ -2,16 +2,16 @@
 
 ## Inti pembahasan di dalamnya : 
 
-###- Deskripsi Solusi untuk setiap masalah yang didefinisikan
+###Deskripsi Solusi untuk setiap masalah yang didefinisikan
 
 
-###- Arsitektur dari system
+###Arsitektur dari system
 
   
-###- Use Case dari system yang bertujuan mengimplementasikan solusi yang diajukan
+###Use Case dari system yang bertujuan mengimplementasikan solusi yang diajukan
 
 
-###- Detail Program, terutama untuk menjawab kriteria-kriteria dalam deskripsi masalah proyek
+###Detail Program, terutama untuk menjawab kriteria-kriteria dalam deskripsi masalah proyek
 
 ---
 
@@ -148,8 +148,95 @@ Sistem ini dirancang untuk memonitor level air pada tangki eksperimen secara oto
 
 ---
 
-Terdapat 4 kriteria utama yang terdapat pada  definisi masalah berupa :
+Solusi yang diajukan pada intinya terdapat pada fitur utama yang telah kami rancang untuk proyek ini yang berupa : 
 
+#### Arsitektur Client-Server: Sensor (client) mengirim data ke server.
+
+Setiap sensor bertindak sebagai client yang menghubungi server, mengirimkan ID dan level air.
+
+Kode untuk Client : 
+```cpp
+sendString(sock, CLIENT_ID); // Kirim ID unik sensor
+send(sock, reinterpret_cast<char*>(&level), sizeof(level), 0); // Kirim level air
+```
+
+Kode untuk Server : 
+```cpp
+receiveString(clientSocket, clientId); // Terima ID
+recv(clientSocket, reinterpret_cast<char*>(&level), sizeof(level), 0); // Terima data level air
+```
+
+#### Penanganan Koneksi Paralel: Server dapat menangani koneksi dari banyak sensor (client) secara bersamaan menggunakan multi-threading.
+
+Server membuat thread baru untuk setiap koneksi client.
+
+```cpp
+std::thread(handleClient, clientSocket, std::string(clientIpStr), clientPortNum).detach();
+```
+
+#### Sinkronisasi Data: Akses ke buffer data bersama di server dilindungi oleh mutex untuk keamanan thread.
+
+ Karena banyak thread mengakses dataBuffer (vector global), digunakan std::mutex dimana : 
+- std::mutex bufferMutex; → objek kunci global.
+- std::lock_guard<std::mutex> lock(bufferMutex); → digunakan setiap akses tulis/baca ke buffer.
+
+```cpp
+{
+    std::lock_guard<std::mutex> lock(bufferMutex);
+    dataBuffer.push_back({now, level, clientId});
+}
+```
+
+#### Identifikasi Client: Setiap client mengirimkan ID unik ke server untuk identifikasi data.
+
+Setiap sensor mengirim ID unik agar data dapat dilacak sumbernya.
+
+dimana kode untuk Client : 
+```cpp
+const std::string CLIENT_ID = "SensorA001";
+```
+dimana kode untuk Server : 
+```cpp
+receiveString(clientSocket, clientId); // Membaca ID dari client
+```
+
+#### Persistensi Data:
+Backup data lengkap ke file biner (backup.dat) secara periodik.
+Ekspor data level kritis (di luar ambang batas normal) ke file JSON (critical.json) secara periodik.
+
+File menyimpan semua data yang masuk, disimpan berkala.  (backup.dat)
+
+```cpp
+std::ofstream out(filename, std::ios::binary | std::ios::trunc);
+out.write(reinterpret_cast<const char*>(&dp.timestamp), sizeof(dp.timestamp));
+out.write(reinterpret_cast<const char*>(&dp.level), sizeof(dp.level));
+```
+
+Ekspor Level Kritis ke JSON (critical.json) Jika level < 20 atau > 80, simpan ke JSON.
+
+```cpp
+if (dp.level < LOW_THRESHOLD || dp.level > HIGH_THRESHOLD) {
+    j_array.push_back({
+        {"clientId", dp.clientId},
+        {"timestamp", dp.timestamp},
+        {"level", dp.level}
+    });
+}
+```
+
+#### Logging: Server menyediakan log untuk status operasi, koneksi, dan data yang diterima.
+
+Server mencatat semua kejadian penting ke std::cout.
+
+```cpp
+std::cout << "[INFO] Client connected: ID=" << clientId << ...
+std::cerr << "[ERROR] Client [" << clientId << "]: recv failed ...
+std::cout << "[DATA] Client [" << clientId << "]: Level: ...
+```
+---
+### Detail Program, terutama untuk menjawab kriteria-kriteria dalam deskripsi masalah proyek
+Terdapat 4 kriteria utama yang terdapat pada  definisi masalah berupa :
+---
 #### Arsitektur Client - Server
   
 Arsitektur umum sistem berbasis TCP. Client mewakilkan sensor yang mensimulasikan pengiriman data water level. Sementara server menerima data dari client dan menyimpan secara temporer dengan pencadangan berkala, data kritis dicatat dalam format JSON.
