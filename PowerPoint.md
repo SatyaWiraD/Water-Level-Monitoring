@@ -148,6 +148,8 @@ Sistem ini dirancang untuk memonitor level air pada tangki eksperimen secara oto
 
 ---
 
+### Use Case dari system yang bertujuan mengimplementasikan solusi yang diajukan
+
 Solusi yang diajukan pada intinya terdapat pada fitur utama yang telah kami rancang untuk proyek ini yang berupa : 
 
 #### Arsitektur Client-Server: Sensor (client) mengirim data ke server.
