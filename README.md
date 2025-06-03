@@ -77,6 +77,16 @@ Direktori `data/`:
 - Client: Akan berhenti secara otomatis setelah mengirim semua datanya.
 - Server: Tekan Ctrl+C di terminal tempat server berjalan untuk menghentikannya.
 
+# Debugging
+1. Simulasi Data Ekstrem
+Uji dengan data di bawah dan di atas ambang batas normal untuk memastikan file critical.json bekerja dengan benar.
+
+2. Stress Test
+Jalankan 10+ client sekaligus untuk menguji kestabilan multi-threading dan sinkronisasi mutex.
+
+3. Tes File I/O
+Simulasi disk penuh atau file terkunci untuk memverifikasi apakah sistem gagal secara aman.
+
 # Konfigurasi Penting dalam Kode
 
 - src/client.cpp:
