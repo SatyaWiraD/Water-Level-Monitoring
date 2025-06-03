@@ -104,6 +104,34 @@ Terdapat penyimpanan lokal dari server ke dua jenis file :
 
 - Searching & Sorting Data
 
+
+Kriteria yang diperlukan berdasarkan definisi masalah : 
+
+- Mencari momen level kritis: level < 20.0 atau > 80.0.
+- Mengurutkan kejadian berdasarkan waktu (timestamp).
+
+Detail Implementasinya pada program berupa kode berikut : 
+
+```cpp void exportCriticalToJson(const std::string& filename) {
+    std::lock_guard<std::mutex> lock(bufferMutex);
+    json j_array = json::array(); 
+    bool hasCriticalData = false;
+
+    for (const auto& dp : dataBuffer) {
+        if (dp.level < LOW_THRESHOLD || dp.level > HIGH_THRESHOLD) {
+            hasCriticalData = true;
+            j_array.push_back({
+                {"clientId", dp.clientId}, 
+                {"timestamp", dp.timestamp},
+                {"level", dp.level}
+            });
+        }
+    }
+```
+- if (dp.level < LOW_THRESHOLD || dp.level > HIGH_THRESHOLD) merupakan filter untuk data kritis sesuai dengan threshold yang diberikan.
+- Data kemudian ditambahkan ke array JSON.
+- Data tidak secara langsung di sort berdasarkan timestamp, tapi urutan data buffer sudah berdasarkan waktu yang diterma
+
 - Persistensi Data
 
 - Paralel Processing & Sinkronisasi
