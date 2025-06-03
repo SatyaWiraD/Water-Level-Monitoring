@@ -1,4 +1,5 @@
-// server.cpp
+// monitoring_tangki_air.cpp
+
 #include <iostream>
 #include <vector>
 #include <thread>
@@ -7,11 +8,25 @@
 #include <fstream>
 #include <sstream>
 #include <ctime>
-#include <netinet/in.h>
-#include <unistd.h>
-#include <nlohmann/json.hpp>
 
+#include <nlohmann/json.hpp>
 using json = nlohmann::json;
+
+// Cross-platform socket
+#ifdef _WIN32
+    #include <winsock2.h>
+    #include <ws2tcpip.h>
+    #pragma comment(lib, "ws2_32.lib")
+#else
+    #include <netinet/in.h>
+    #include <unistd.h>
+    #include <arpa/inet.h>
+    #include <sys/socket.h>
+    typedef int SOCKET;
+    #define INVALID_SOCKET -1
+    #define SOCKET_ERROR -1
+    #define closesocket close
+#endif
 
 struct DataPoint {
     std::time_t timestamp;
@@ -20,6 +35,7 @@ struct DataPoint {
 
 std::vector<DataPoint> dataBuffer;
 std::mutex bufferMutex;
+
 const float LOW_THRESHOLD = 20.0;
 const float HIGH_THRESHOLD = 80.0;
 
@@ -49,10 +65,10 @@ void exportCriticalToJson(const std::string& filename) {
     out.close();
 }
 
-void handleClient(int clientSocket) {
+void handleClient(SOCKET clientSocket) {
     while (true) {
         float level;
-        int bytesReceived = recv(clientSocket, &level, sizeof(level), 0);
+        int bytesReceived = recv(clientSocket, reinterpret_cast<char*>(&level), sizeof(level), 0);
         if (bytesReceived <= 0) break;
 
         std::time_t now = std::time(nullptr);
@@ -62,33 +78,63 @@ void handleClient(int clientSocket) {
         }
         std::cout << "Received level: " << level << " at " << std::ctime(&now);
     }
-    close(clientSocket);
+    closesocket(clientSocket);
 }
 
 void startServer(int port) {
-    int serverFd = socket(AF_INET, SOCK_STREAM, 0);
+#ifdef _WIN32
+    WSADATA wsaData;
+    int wsaInit = WSAStartup(MAKEWORD(2, 2), &wsaData);
+    if (wsaInit != 0) {
+        std::cerr << "WSAStartup failed: " << wsaInit << std::endl;
+        return;
+    }
+#endif
+
+    SOCKET serverFd = socket(AF_INET, SOCK_STREAM, 0);
+    if (serverFd == INVALID_SOCKET) {
+        std::cerr << "Socket creation failed!" << std::endl;
+        return;
+    }
+
     sockaddr_in address{};
     address.sin_family = AF_INET;
     address.sin_addr.s_addr = INADDR_ANY;
     address.sin_port = htons(port);
 
-    bind(serverFd, (struct sockaddr*)&address, sizeof(address));
-    listen(serverFd, 5);
+    if (bind(serverFd, (struct sockaddr*)&address, sizeof(address)) == SOCKET_ERROR) {
+        std::cerr << "Bind failed!" << std::endl;
+        closesocket(serverFd);
+        return;
+    }
+
+    if (listen(serverFd, 5) == SOCKET_ERROR) {
+        std::cerr << "Listen failed!" << std::endl;
+        closesocket(serverFd);
+        return;
+    }
 
     std::cout << "Server listening on port " << port << std::endl;
 
     while (true) {
-        socklen_t addrlen = sizeof(address);
-        int clientSocket = accept(serverFd, (struct sockaddr*)&address, &addrlen);
+        sockaddr_in clientAddr{};
+        socklen_t addrlen = sizeof(clientAddr);
+        SOCKET clientSocket = accept(serverFd, (struct sockaddr*)&clientAddr, &addrlen);
+        if (clientSocket == INVALID_SOCKET) continue;
+
         std::thread(handleClient, clientSocket).detach();
     }
+
+#ifdef _WIN32
+    WSACleanup();
+#endif
 }
 
 void periodicBackup() {
     while (true) {
         std::this_thread::sleep_for(std::chrono::seconds(10));
-        backupToBinary("backup.dat");
-        exportCriticalToJson("critical.json");
+        backupToBinary("data/backup.dat");
+        exportCriticalToJson("data/critical.json");
     }
 }
 
@@ -98,5 +144,5 @@ int main() {
 
     serverThread.join();
     backupThread.join();
-    return 0;
+    return 0;
 }
