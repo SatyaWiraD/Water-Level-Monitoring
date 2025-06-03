@@ -233,3 +233,30 @@ void periodicBackup() {
 - File biner digunakan (std::ios::binary) untuk keperluan backup yang didalamnya ditulis timestamp, level, dan panjang serta isi dari clientId.
 
 #### Paralel Processing & Sinkronisasi
+
+
+Kriteria yang diperlukan berdasarkan definisi masalah : 
+
+-  Paralel Processing untuk menangani banyak client bersamaan
+- Sinkronisasi antara koneksi aman
+
+Detail kode untuk paralel processing : 
+
+```cpp
+std::thread(handleClient, clientSocket, std::string(clientIpStr), clientPortNum).detach();
+```
+
+- Setiap client ditangani thread yang terpisah (multithreaded)
+- handleClient() berjalan paralel untuk setiap sensor yang aktif.
+
+Detail kode untuk paralel Sinkronisasi : 
+
+```cpp
+std::mutex bufferMutex;
+...
+{
+    std::lock_guard<std::mutex> lock(bufferMutex);
+    dataBuffer.push_back({now, level, clientId});
+}
+```
+- Semua akses read/write dataBuffer dikunci dengan lock_guard
