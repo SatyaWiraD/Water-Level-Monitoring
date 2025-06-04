@@ -24,7 +24,7 @@ Saat ini, proses **pemantauan level air dilakukan secara manual**, yaitu oleh te
 * **Mengukur level air** menggunakan alat ukur seperti **gauge**,
 * **Mencatat hasilnya secara berkala** untuk setiap tangki yang digunakan.
 
-Namun, metode manual ini memiliki beberapa kekurangan serius:
+Namun, metode manual yang digunakan sekarang ini memiliki beberapa kekurangan serius:
 
 1. **Lambat dalam merespons kondisi kritis**:
 
