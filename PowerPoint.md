@@ -348,7 +348,7 @@ std::mutex bufferMutex;
     dataBuffer.push_back({now, level, clientId});
 }
 ```
-- Semua akses read/write dataBuffer dikunci dengan lock_guard
+- Semua akses read/write dataBuffer di kunci dengan lock_guard
 
 # PowerPoint berisi rangkuman dari apa yang ada disini dan dapat diakses pada link : 
 https://www.canva.com/design/DAGpTiErw1w/01iJRxzQnAsq00c3qrc6JQ/edit?utm_content=DAGpTiErw1w&utm_campaign=designshare&utm_medium=link2&utm_source=sharebutton
