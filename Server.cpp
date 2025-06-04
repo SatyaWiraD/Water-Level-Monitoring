@@ -6,12 +6,13 @@
 #include <mutex>
 #include <chrono>
 #include <fstream>
-#include <sstream>
+#include <sstream>  // Diperlukan untuk std::ostringstream
+#include <iomanip>  // Diperlukan untuk std::put_time
 #include <ctime>
 #include <string>
 #include <algorithm>
-#include <cstring> 
-#include <cerrno>   
+#include <cstring>
+#include <cerrno>
 
 #include <nlohmann/json.hpp>
 using json = nlohmann::json;
@@ -21,14 +22,14 @@ using json = nlohmann::json;
     #include <winsock2.h>
     #include <ws2tcpip.h>
     #pragma comment(lib, "ws2_32.lib")
-    #include <direct.h> 
+    #include <direct.h>
     #define GetCurrentDir _getcwd
 #else
     #include <netinet/in.h>
-    #include <unistd.h>     
+    #include <unistd.h>
     #include <arpa/inet.h>
     #include <sys/socket.h>
-    #include <limits.h>    
+    #include <limits.h>
     #define GetCurrentDir getcwd
     typedef int SOCKET;
     #define INVALID_SOCKET -1
@@ -37,23 +38,23 @@ using json = nlohmann::json;
 #endif
 
 // !!! GANTI INI DENGAN PATH ABSOLUT YANG BENAR DI KOMPUTER ANDA !!!
-const std::string DATA_DIRECTORY_PATH = "C:/Users/Ida Ayu Dwi Guna/Documents/Wira/Water Level Monitoring/data/";
+const std::string DATA_DIRECTORY_PATH = "C:/Users/Ida Ayu Dwi Guna/Documents/Wira/Water Level Monitoring/data/"; // Sesuaikan path ini
 
 
 struct DataPoint {
     std::time_t timestamp;
     float level;
-    std::string clientId; 
+    std::string clientId;
 };
 
 std::vector<DataPoint> dataBuffer;
-std::mutex bufferMutex; 
+std::mutex bufferMutex;
 
 const float LOW_THRESHOLD = 20.0;
 const float HIGH_THRESHOLD = 80.0;
 
 bool receiveString(SOCKET sock, std::string& str) {
-    uint32_t len_net; 
+    uint32_t len_net;
     int bytesReceived = recv(sock, reinterpret_cast<char*>(&len_net), sizeof(len_net), 0);
     if (bytesReceived <= 0) {
         #ifdef _WIN32
@@ -65,8 +66,8 @@ bool receiveString(SOCKET sock, std::string& str) {
     }
     if (bytesReceived < static_cast<int>(sizeof(len_net))) return false;
 
-    uint32_t len_host = ntohl(len_net); 
-    if (len_host > 4096) { 
+    uint32_t len_host = ntohl(len_net);
+    if (len_host > 4096) {
         std::cerr << "[ERROR] receiveString: Received string length (" << len_host << ") exceeds limit." << std::endl;
         return false;
     }
@@ -90,7 +91,7 @@ bool receiveString(SOCKET sock, std::string& str) {
         if (bytesReceived == 0) return false; // Koneksi ditutup prematur
         totalBytesReceived += bytesReceived;
     }
-    
+
     if (totalBytesReceived == static_cast<int>(len_host)) {
         str.assign(buffer.data(), len_host);
         return true;
@@ -102,10 +103,10 @@ bool receiveString(SOCKET sock, std::string& str) {
 void backupToBinary(const std::string& filename) {
     std::lock_guard<std::mutex> lock(bufferMutex);
     if (dataBuffer.empty()) {
-        return; // Tidak ada data untuk di-backup
+        return;
     }
 
-    std::ofstream out(filename, std::ios::binary | std::ios::trunc); 
+    std::ofstream out(filename, std::ios::binary | std::ios::trunc);
     if (!out.is_open()) {
         std::cerr << "ERROR: Failed to open binary backup file: " << filename << std::endl;
         return;
@@ -123,36 +124,61 @@ void backupToBinary(const std::string& filename) {
     std::cout << "[INFO] Binary backup completed to: " << filename << std::endl;
 }
 
+// --- MODIFIKASI DI SINI UNTUK WAKTU JAKARTA (WIB / UTC+7) ---
 void exportCriticalToJson(const std::string& filename) {
     std::lock_guard<std::mutex> lock(bufferMutex);
-    json j_array = json::array(); 
+    json j_array = json::array();
     bool hasCriticalData = false;
     for (const auto& dp : dataBuffer) {
         if (dp.level < LOW_THRESHOLD || dp.level > HIGH_THRESHOLD) {
             hasCriticalData = true;
+
+            std::time_t utc_timestamp = dp.timestamp;
+
+            // WIB adalah UTC+7 jam
+            // 7 jam * 60 menit/jam * 60 detik/menit = 25200 detik
+            const long WIB_OFFSET_SECONDS = 7 * 3600;
+            std::time_t wib_timestamp_representation = utc_timestamp + WIB_OFFSET_SECONDS;
+
+            std::tm tm_struct_wib;
+            // Kita gunakan gmtime_s/gmtime_r pada timestamp yang sudah di-offset.
+            // Ini akan mengisi tm_struct_wib dengan komponen waktu yang sesuai dengan WIB,
+            // meskipun fungsinya bernama "gmtime" (yang biasanya untuk UTC).
+            #ifdef _WIN32
+                gmtime_s(&tm_struct_wib, &wib_timestamp_representation);
+            #else
+                gmtime_r(&wib_timestamp_representation, &tm_struct_wib);
+            #endif
+
+            std::ostringstream oss;
+            // Format: YYYY-MM-DDTHH:MM:SS+07:00
+            oss << std::put_time(&tm_struct_wib, "%Y-%m-%dT%H:%M:%S") << "+07:00";
+            std::string formatted_timestamp = oss.str();
+
             j_array.push_back({
-                {"clientId", dp.clientId}, 
-                {"timestamp", dp.timestamp},
+                {"clientId", dp.clientId},
+                {"timestamp", formatted_timestamp}, // Gunakan string timestamp WIB
                 {"level", dp.level}
             });
         }
     }
 
-    std::ofstream out(filename); 
+    std::ofstream out(filename);
     if (!out.is_open()) {
         std::cerr << "ERROR: Failed to open JSON critical file: " << filename << std::endl;
         return;
     }
-    out << j_array.dump(4); 
+    out << j_array.dump(4); // Pretty print JSON dengan indentasi 4 spasi
     out.close();
     if (hasCriticalData) {
         std::cout << "[INFO] Critical data exported to JSON: " << filename << std::endl;
     }
 }
+// --- AKHIR MODIFIKASI ---
 
 
 void handleClient(SOCKET clientSocket, std::string clientIp, int clientPort) {
-    std::string clientId = "UNKNOWN_CLIENT"; 
+    std::string clientId = "UNKNOWN_CLIENT";
 
     if (receiveString(clientSocket, clientId)) {
         std::cout << "[INFO] Client connected: ID=" << clientId << ", from=" << clientIp << ":" << clientPort << std::endl;
@@ -165,7 +191,7 @@ void handleClient(SOCKET clientSocket, std::string clientIp, int clientPort) {
     while (true) {
         float level;
         int bytesReceived = recv(clientSocket, reinterpret_cast<char*>(&level), sizeof(level), 0);
-        
+
         if (bytesReceived == SOCKET_ERROR) {
             #ifdef _WIN32
             std::cerr << "[ERROR] Client [" << clientId << "]: recv failed with error: " << WSAGetLastError() << std::endl;
@@ -183,21 +209,22 @@ void handleClient(SOCKET clientSocket, std::string clientIp, int clientPort) {
             continue;
         }
 
-        std::time_t now = std::time(nullptr);
+        std::time_t now = std::time(nullptr); // Timestamp dibuat di sini (sebagai Unix time)
         {
             std::lock_guard<std::mutex> lock(bufferMutex);
-            dataBuffer.push_back({now, level, clientId}); 
+            dataBuffer.push_back({now, level, clientId});
         }
-        
+
         char time_buf[26];
+        // Format untuk log konsol tetap bisa menggunakan ctime_s/ctime atau format lain
         #ifdef _WIN32
             ctime_s(time_buf, sizeof time_buf, &now);
         #else
-            char* temp_time_str = std::ctime(&now); 
-            if (temp_time_str) { strncpy(time_buf, temp_time_str, sizeof(time_buf) -1); time_buf[sizeof(time_buf) - 1] = '\0'; } 
+            char* temp_time_str = std::ctime(&now);
+            if (temp_time_str) { strncpy(time_buf, temp_time_str, sizeof(time_buf) -1); time_buf[sizeof(time_buf) - 1] = '\0'; }
             else { strncpy(time_buf, "Error getting time", sizeof(time_buf)); }
         #endif
-        time_buf[strcspn(time_buf, "\n")] = 0; 
+        time_buf[strcspn(time_buf, "\n")] = 0; // Hapus newline
         std::cout << "[DATA] Client [" << clientId << "]: Level: " << level << " at " << time_buf << std::endl;
     }
     closesocket(clientSocket);
@@ -254,7 +281,7 @@ void startServer(int port) {
         return;
     }
 
-    if (listen(serverFd, 10) == SOCKET_ERROR) { 
+    if (listen(serverFd, 10) == SOCKET_ERROR) {
         std::cerr << "SERVER FATAL: Listen failed! Error: ";
         #ifdef _WIN32
         std::cerr << WSAGetLastError();
@@ -277,9 +304,9 @@ void startServer(int port) {
         #else
         socklen_t addrlen = sizeof(clientAddr);
         #endif
-        
+
         SOCKET clientSocket = accept(serverFd, (struct sockaddr*)&clientAddr, &addrlen);
-        
+
         if (clientSocket == INVALID_SOCKET) {
             std::cerr << "[ERROR] SERVER: Accept failed! Error: ";
             #ifdef _WIN32
@@ -293,19 +320,19 @@ void startServer(int port) {
             #else
             if (errno == EINTR) continue;
             #endif
-            continue; 
+            continue;
         }
-        
+
         char clientIpStr[INET_ADDRSTRLEN];
         const char* result_ntop = inet_ntop(AF_INET, &clientAddr.sin_addr, clientIpStr, INET_ADDRSTRLEN);
         if (result_ntop == NULL) {
             strncpy(clientIpStr, "UNKNOWN_IP", INET_ADDRSTRLEN);
         }
         int clientPortNum = ntohs(clientAddr.sin_port);
-                
+
         std::thread(handleClient, clientSocket, std::string(clientIpStr), clientPortNum).detach();
     }
-    closesocket(serverFd); 
+    closesocket(serverFd);
 #ifdef _WIN32
     WSACleanup();
 #endif
@@ -313,7 +340,7 @@ void startServer(int port) {
 
 void periodicBackup() {
     while (true) {
-        std::this_thread::sleep_for(std::chrono::seconds(10)); 
+        std::this_thread::sleep_for(std::chrono::seconds(10));
         std::cout << "[INFO] Performing periodic backup..." << std::endl;
         backupToBinary(DATA_DIRECTORY_PATH + "backup.dat");
         exportCriticalToJson(DATA_DIRECTORY_PATH + "critical.json");
@@ -322,12 +349,12 @@ void periodicBackup() {
 
 int main() {
     std::cout << "[INFO] Server application starting..." << std::endl;
-    std::thread serverThread(startServer, 8888); 
+    std::thread serverThread(startServer, 8888);
     std::thread backupThread(periodicBackup);
 
     serverThread.join();
     // backupThread.join(); // Umumnya tidak tercapai
-    
+
     std::cout << "[INFO] Main function exiting (should not happen)." << std::endl;
     return 0;
 }
