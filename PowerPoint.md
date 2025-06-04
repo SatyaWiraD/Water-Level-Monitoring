@@ -17,7 +17,7 @@
 
 ## **Latar Belakang Masalah**
 
-Dalam berbagai **percobaan di laboratorium elektro-mekanik Universitas Indonesia**, digunakan **tangki air** sebagai bagian dari sistem eksperimen. Pada eksperimen-eksperimen ini, **volume dan level air** di dalam tangki sangat penting karena secara langsung memengaruhi **validitas hasil percobaan**.
+Dalam berbagai **percobaan di laboratorium elektro-mekanik Universitas Indonesia**, digunakan **tangki air** sebagai bagian dari sistem dalam melakukan eksperimen. Pada eksperimen-eksperimen ini, **volume dan level air** di dalam tangki sangat penting karena secara langsung memengaruhi **validitas hasil percobaan**.
 
 Saat ini, proses **pemantauan level air dilakukan secara manual**, yaitu oleh teknisi yang harus:
 
