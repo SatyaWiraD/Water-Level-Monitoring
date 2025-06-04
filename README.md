@@ -1,6 +1,6 @@
 # Proyek Monitoring Level Air (Client-Server)
 
-Proyek ini mengimplementasikan sistem client-server untuk memonitor level air pada tangki eksperimen. Sensor (client) mengirimkan data level air secara periodik ke server monitoring, yang kemudian menyimpan data tersebut, melakukan backup, dan mengekspor data kritis.
+Proyek yang kami kerjakan ini dapagt mengimplementasikan sistem client-server untuk memonitor level air pada tangki eksperimen. Sensor (client) mengirimkan data level air secara periodik ke server monitoring, yang kemudian menyimpan data tersebut, melakukan backup, dan mengekspor data kritis.
 
 ## Fitur Utama
 
