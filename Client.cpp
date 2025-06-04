@@ -3,7 +3,7 @@
 #include <chrono>
 #include <cstdlib>
 #include <ctime>
-#include <string> // Untuk std::string
+#include <string> // Untuk std::stringg
 #include <vector> // Untuk mengirim string dengan ukuran
 
 #include <winsock2.h>
