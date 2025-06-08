@@ -81,9 +81,6 @@ Berikut adalah **deskripsi solusi** untuk setiap masalah yang telah didefinisika
 * Untuk menghindari kondisi balapan (race condition), server menggunakan **mutex (std::mutex)** untuk mengamankan akses ke buffer data bersama.
 * Ini memastikan integritas data meskipun banyak thread aktif secara bersamaan.
 
----
-
-Tentu! Berikut penjelasan **arsitektur sistem Water Level Monitoring** secara lebih lengkap dan terstruktur:
 
 ---
 
