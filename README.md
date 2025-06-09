@@ -12,6 +12,7 @@ Proyek yang kami kerjakan ini dapagt mengimplementasikan sistem client-server un
     *   Backup data lengkap ke file biner (`backup.dat`) secara periodik.
     *   Ekspor data level kritis (di luar ambang batas normal) ke file JSON (`critical.json`) secara periodik.
 *   **Logging:** Server menyediakan log untuk status operasi, koneksi, dan data yang diterima.
+*   **Sorting:** Hasil output adalah data yang disorting berdasarkan waktu dan level air.
 
 ## Prasyarat
 
@@ -21,7 +22,7 @@ Proyek yang kami kerjakan ini dapagt mengimplementasikan sistem client-server un
     *   Letakkan file `json.hpp` di direktori `include/nlohmann/` dalam root proyek.
 
 ## Struktur Direktori Proyek
-![image](https://github.com/user-attachments/assets/89a4a4ed-b3ef-4338-ad11-998d9d5ccfd1)
+![image](https://github.com/user-attachments/assets/ba04c9f6-03f7-4d82-a5a1-ed57cb2189b6)
 - .vscode/ # Pengaturan VS Code (opsional)
 - bin/ # Direktori output untuk executable
 - include/nlohmann untuk tempat library JSON
